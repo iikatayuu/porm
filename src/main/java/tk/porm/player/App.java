@@ -146,7 +146,7 @@ public class App {
 		labelTitle.setFont(labelTitle.getFont().deriveFont(labelTitle.getFont().getStyle() | Font.BOLD, 16f));
 		labelTitle.setBounds(10, 140, 200, 23);
 		detailsPane.add(labelTitle);
-		
+
 		labelArtist = new JLabel("SONG ARTIST", SwingConstants.CENTER);
 		labelArtist.setFont(UIManager.getFont("Label.font"));
 		labelArtist.setBounds(10, 160, 200, 23);
@@ -209,18 +209,21 @@ public class App {
 		searchPane.setLayout(null);
 		contentPane.add(searchPane);
 
+		ActionListener actionSearch = new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String search = tfSearch.getText();
+				loadSongs(search);
+			}
+		};
+
 		tfSearch = new JTextField();
+		tfSearch.addActionListener(actionSearch);
 		tfSearch.setBounds(0, 10, 380, 23);
 		tfSearch.setColumns(10);
 		searchPane.add(tfSearch);
 
 		JButton btnSearch = new JButton("Search");
-		btnSearch.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String search = tfSearch.getText();
-				loadSongs(search);
-			}
-		});
+		btnSearch.addActionListener(actionSearch);
 		btnSearch.setBounds(390, 10, 80, 23);
 		searchPane.add(btnSearch);
 
