@@ -297,8 +297,11 @@ public class App {
 						exception.printStackTrace();
 					}
 
-					if (title.equals("")) {
+					if (title == null || title.equals("")) {
 						title = Paths.get(location).getFileName().toString();
+					}
+
+					if (artist == null) {
 						artist = "";
 					}
 
