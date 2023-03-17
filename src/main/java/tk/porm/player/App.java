@@ -69,6 +69,8 @@ public class App {
 	private ImageIcon imgPlay;
 	private ImageIcon imgPause;
 	private ImageIcon imgAlbum;
+	private int albumWidth;
+	private int albumHeight;
 
 	public static void main(String[] args) {
 		final DatabaseConnection dc = new DatabaseConnection();
@@ -131,8 +133,8 @@ public class App {
 		detailsPane.setLayout(null);
 		contentPane.add(detailsPane);
 
-		int albumWidth = imgAlbum.getIconWidth();
-		int albumHeight = imgAlbum.getIconHeight();
+		albumWidth = imgAlbum.getIconWidth();
+		albumHeight = imgAlbum.getIconHeight();
 		BufferedImage bufferAlbum = new BufferedImage(albumWidth, albumHeight, BufferedImage.TYPE_INT_ARGB);
 		Graphics albumGraphics = bufferAlbum.createGraphics();
 		imgAlbum.paintIcon(null, albumGraphics, 0, 0);
@@ -412,6 +414,11 @@ public class App {
 			if (imgData != null) {
 				ByteArrayInputStream stream = new ByteArrayInputStream(imgData);
 				BufferedImage album = ImageIO.read(stream);
+				albumImgPane.setImage(album);
+			} else {
+				BufferedImage album = new BufferedImage(albumWidth, albumHeight, BufferedImage.TYPE_INT_ARGB);
+				Graphics albumGraphics = album.createGraphics();
+				imgAlbum.paintIcon(null, albumGraphics, 0, 0);
 				albumImgPane.setImage(album);
 			}
 
