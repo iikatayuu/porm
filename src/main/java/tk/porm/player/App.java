@@ -33,6 +33,7 @@ import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.ID3v1;
@@ -109,6 +110,7 @@ public class App {
 		frame = new JFrame(); 
 		frame.setTitle("Player/Organizer Music");
 		frame.setIconImage(icon);
+		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setBounds(100, 100, 720, 500);
 		JPanel contentPane = new JPanel();
@@ -221,13 +223,18 @@ public class App {
 		songsListPane.setLayout(null);
 		contentPane.add(songsListPane);
 
-		String[] cols = { "Title", "Artist" };
+		String[] cols = { "Album Cover", "Title", "Artist" };
 		tableModel = new DefaultTableModel(cols, 0) {
 			public static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isCellEditable (int row, int col) {
 				return false;
+			}
+
+			@Override
+			public Class<?> getColumnClass(int column) {
+				return column == 0 ? ImageIcon.class : super.getColumnClass(column);
 			}
 		};
 
@@ -242,7 +249,9 @@ public class App {
 				}
 			}
 		});
-		songsListTable.setBounds(0, 0, 480, 380);
+		TableColumnModel model = songsListTable.getColumnModel();
+		songsListTable.setRowHeight(120);
+		model.getColumn(0).setPreferredWidth(20);
 
 		JScrollPane scrollPane = new JScrollPane(songsListTable);
 		scrollPane.setBounds(0, 0, 480, 380);
@@ -306,7 +315,7 @@ public class App {
 		JButton btnDelete = new JButton("Remove Selected");
 		btnDelete.setBounds(260, 8, 115, 23);
 		actionsPane.add(btnDelete);
-		
+
 		JButton btnOpenConverter = new JButton("YT Downloader");
 		btnOpenConverter.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -338,8 +347,25 @@ public class App {
 
 		for (int i = 0; i < songsList.size(); i++) {
 			Song song = songsList.get(i);
-			String[] data = { song.getTitle(), song.getArtist() };
+			String location = song.getLocation();
+			ImageIcon album = null;
 
+			try {
+				Mp3File mp3file = new Mp3File(location);
+				if (mp3file.hasId3v2Tag()) {
+					ID3v2 tags = mp3file.getId3v2Tag();
+					byte[] imgData = tags.getAlbumImage();
+
+					ByteArrayInputStream stream = new ByteArrayInputStream(imgData);
+					BufferedImage albumImg = ImageIO.read(stream);
+					Image resized = albumImg.getScaledInstance(110, 110, Image.SCALE_SMOOTH);
+					album = new ImageIcon(resized);
+				}
+			} catch (Exception exception) {
+				exception.printStackTrace();
+			}
+
+			Object[] data = { album, song.getTitle(), song.getArtist() };
 			tableModel.addRow(data);
 		}
 	}
