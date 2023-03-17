@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Image;
 
 import javax.imageio.ImageIO;
@@ -67,6 +68,7 @@ public class App {
 	private ImageIcon imgNext;
 	private ImageIcon imgPlay;
 	private ImageIcon imgPause;
+	private ImageIcon imgAlbum;
 
 	public static void main(String[] args) {
 		final DatabaseConnection dc = new DatabaseConnection();
@@ -108,6 +110,10 @@ public class App {
 		String imgPausePath = imgPauseRes.getPath();
 		imgPause = new ImageIcon(imgPausePath);
 
+		URL resource = loader.getResource("album.jpg");
+		String imagePath = resource.getPath();
+		imgAlbum = new ImageIcon(imagePath);
+
 		frame = new JFrame(); 
 		frame.setTitle("Player/Organizer Music");
 		frame.setIconImage(icon);
@@ -125,17 +131,14 @@ public class App {
 		detailsPane.setLayout(null);
 		contentPane.add(detailsPane);
 
-		try {
-			URL resource = loader.getResource("album.jpg");
-			String imagePath = resource.getPath();
-			File imageFile = new File(imagePath);
-			BufferedImage image = ImageIO.read(imageFile);
-			albumImgPane = new ImagePanel(image, 120, 120);
-			albumImgPane.setBounds(50, 10, 120, 120);
-			detailsPane.add(albumImgPane);
-		} catch (Exception exception) {
-			exception.printStackTrace();
-		}
+		int albumWidth = imgAlbum.getIconWidth();
+		int albumHeight = imgAlbum.getIconHeight();
+		BufferedImage bufferAlbum = new BufferedImage(albumWidth, albumHeight, BufferedImage.TYPE_INT_ARGB);
+		Graphics albumGraphics = bufferAlbum.createGraphics();
+		imgAlbum.paintIcon(null, albumGraphics, 0, 0);
+		albumImgPane = new ImagePanel(bufferAlbum, 120, 120);
+		albumImgPane.setBounds(50, 10, 120, 120);
+		detailsPane.add(albumImgPane);
 
 		labelTitle = new JLabel("SONG TITLE", SwingConstants.CENTER);
 		labelTitle.setFont(labelTitle.getFont().deriveFont(labelTitle.getFont().getStyle() | Font.BOLD, 16f));
@@ -360,16 +363,18 @@ public class App {
 					ID3v2 tags = mp3file.getId3v2Tag();
 					byte[] imgData = tags.getAlbumImage();
 
-					ByteArrayInputStream stream = new ByteArrayInputStream(imgData);
-					BufferedImage albumImg = ImageIO.read(stream);
-					Image resized = albumImg.getScaledInstance(110, 110, Image.SCALE_SMOOTH);
-					album = new ImageIcon(resized);
+					if (imgData != null && imgData.length > 0) {
+						ByteArrayInputStream stream = new ByteArrayInputStream(imgData);
+						BufferedImage albumImg = ImageIO.read(stream);
+						Image resized = albumImg.getScaledInstance(110, 110, Image.SCALE_SMOOTH);
+						album = new ImageIcon(resized);
+					}
 				}
 			} catch (Exception exception) {
 				exception.printStackTrace();
 			}
 
-			Object[] data = { album, song.getTitle(), song.getArtist() };
+			Object[] data = { album != null ? album : imgAlbum, song.getTitle(), song.getArtist() };
 			tableModel.addRow(data);
 		}
 	}
