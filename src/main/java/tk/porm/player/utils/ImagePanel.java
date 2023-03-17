@@ -12,19 +12,19 @@ public class ImagePanel extends JPanel {
 	private int width;
 	private int height;
 
-	public ImagePanel (Image image, int width, int height) {
+	public ImagePanel(Image image, int width, int height) {
 		this.image = image;
 		this.width = width;
 		this.height = height;
 	}
 
-	public void setImage (Image image) {
+	public void setImage(Image image) {
 		this.image = image;
 		this.repaint();
 	}
 
 	@Override
-	protected void paintComponent (Graphics graphics) {
+	protected void paintComponent(Graphics graphics) {
 		super.paintComponent(graphics);
 
 		Image tmp = this.image.getScaledInstance(width, height, Image.SCALE_SMOOTH);

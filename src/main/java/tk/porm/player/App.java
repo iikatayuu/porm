@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Font;
+import java.awt.Image;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
@@ -26,6 +27,8 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JProgressBar;
 import javax.swing.JFileChooser;
+import javax.swing.ImageIcon;
+import javax.swing.BorderFactory;
 import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.border.EmptyBorder;
@@ -42,20 +45,25 @@ import tk.porm.player.objects.Songs;
 import tk.porm.player.objects.SongPlayer;
 import tk.porm.player.utils.ImagePanel;
 
-public class App extends JFrame {
-	public static final long serialVersionUID = 1L;
-
+public class App {
+	private JFrame frame;
 	private SongPlayer player;
 	private Songs songs;
 	private ArrayList<Song> songsList;
 	private int selected;
+
 	private DefaultTableModel tableModel;
 	private ImagePanel albumImgPane;
 	private JLabel labelTitle;
 	private JLabel labelArtist;
-	private JTextField tfSearch;
 	private JButton btnTogglePlay;
+	private JTextField tfSearch;
 	private JProgressBar progressBar;
+
+	private ImageIcon imgPrev;
+	private ImageIcon imgNext;
+	private ImageIcon imgPlay;
+	private ImageIcon imgPause;
 
 	public static void main(String[] args) {
 		final DatabaseConnection dc = new DatabaseConnection();
@@ -63,7 +71,7 @@ public class App extends JFrame {
 			public void run() {
 				try {
 					App app = new App(dc.connection);
-					app.setVisible(true);
+					app.frame.setVisible(true);
 				} catch (Exception exception) {
 					exception.printStackTrace();
 				}
@@ -75,15 +83,37 @@ public class App extends JFrame {
 		this.songs = new Songs(connection);
 		this.selected = -1;
 
-		final JFrame app = this;
+		ClassLoader loader = getClass().getClassLoader();
+		URL iconRes = loader.getResource("icon.png");
+		String iconPath = iconRes.getPath();
+		ImageIcon imgIcon = new ImageIcon(iconPath);
+		Image icon = imgIcon.getImage();
 
-		setTitle("Player/Organizer Music");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 720, 500);
+		URL imgPrevRes = loader.getResource("prev.png");
+		String imgPrevPath = imgPrevRes.getPath();
+		imgPrev = new ImageIcon(imgPrevPath);
+
+		URL imgNextRes = loader.getResource("next.png");
+		String imgNextPath = imgNextRes.getPath();
+		imgNext = new ImageIcon(imgNextPath);
+
+		URL imgPlayRes = loader.getResource("play.png");
+		String imgPlayPath = imgPlayRes.getPath();
+		imgPlay = new ImageIcon(imgPlayPath);
+
+		URL imgPauseRes = loader.getResource("pause.png");
+		String imgPausePath = imgPauseRes.getPath();
+		imgPause = new ImageIcon(imgPausePath);
+
+		frame = new JFrame(); 
+		frame.setTitle("Player/Organizer Music");
+		frame.setIconImage(icon);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setBounds(100, 100, 720, 500);
 		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-		setContentPane(contentPane);
+		frame.setContentPane(contentPane);
 		contentPane.setLayout(null);
 
 		JPanel detailsPane = new JPanel();
@@ -91,9 +121,8 @@ public class App extends JFrame {
 		detailsPane.setLayout(null);
 		contentPane.add(detailsPane);
 
-		ClassLoader loader = getClass().getClassLoader();
-		URL resource = loader.getResource("album.jpg");
 		try {
+			URL resource = loader.getResource("album.jpg");
 			String imagePath = resource.getPath();
 			File imageFile = new File(imagePath);
 			BufferedImage image = ImageIO.read(imageFile);
@@ -115,22 +144,11 @@ public class App extends JFrame {
 		detailsPane.add(labelArtist);
 
 		progressBar = new JProgressBar();
-		progressBar.setBounds(30, 202, 160, 14);
+		progressBar.setBounds(30, 202, 160, 8);
 		detailsPane.add(progressBar);
-		
-		JButton btnNext = new JButton("Next");
-		btnNext.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (selected == -1) return;
-				selected = selected == songsList.size() - 1 ? 0 : selected + 1;
-				playSelected();
-			}
-		});
-		btnNext.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnNext.setBounds(150, 230, 55, 23);
-		detailsPane.add(btnNext);
 
-		JButton btnPrev = new JButton("Prev");
+		JButton btnPrev = new JButton(imgPrev);
+		btnPrev.setIcon(imgPrev);
 		btnPrev.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selected == -1) return;
@@ -138,11 +156,29 @@ public class App extends JFrame {
 				playSelected();
 			}
 		});
+		btnPrev.setBorder(BorderFactory.createEmptyBorder());
+		btnPrev.setContentAreaFilled(false);
 		btnPrev.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnPrev.setBounds(10, 230, 55, 23);
+		btnPrev.setBounds(30, 230, 30, 30);
 		detailsPane.add(btnPrev);
+		
+		JButton btnNext = new JButton(imgNext);
+		btnNext.setIcon(imgNext);
+		btnNext.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selected == -1) return;
+				selected = selected == songsList.size() - 1 ? 0 : selected + 1;
+				playSelected();
+			}
+		});
+		btnNext.setBorder(BorderFactory.createEmptyBorder());
+		btnNext.setContentAreaFilled(false);
+		btnNext.setFont(new Font("Tahoma", Font.PLAIN, 10));
+		btnNext.setBounds(160, 230, 30, 30);
+		detailsPane.add(btnNext);
 
-		btnTogglePlay = new JButton("Pause");
+		btnTogglePlay = new JButton(imgPause);
+		btnTogglePlay.setIcon(imgPlay);
 		btnTogglePlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (player == null) return;
@@ -153,8 +189,10 @@ public class App extends JFrame {
 				}
 			}
 		});
+		btnTogglePlay.setBorder(BorderFactory.createEmptyBorder());
+		btnTogglePlay.setContentAreaFilled(false);
 		btnTogglePlay.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnTogglePlay.setBounds(72, 230, 70, 23);
+		btnTogglePlay.setBounds(95, 230, 30, 30);
 		detailsPane.add(btnTogglePlay);
 
 		JPanel searchPane = new JPanel();
@@ -224,7 +262,7 @@ public class App extends JFrame {
 				chooser.setMultiSelectionEnabled(true);
 				chooser.setAcceptAllFileFilterUsed(false);
 				chooser.addChoosableFileFilter(filter);
-				chooser.showOpenDialog(app);
+				chooser.showOpenDialog(frame);
 				File[] files = chooser.getSelectedFiles();
 				for (int i = 0; i < files.length; i++) {
 					File file = files[i];
@@ -257,7 +295,7 @@ public class App extends JFrame {
 				}
 
 				if (files.length > 0) {
-					JOptionPane.showMessageDialog(app, "Song(s) was added to database successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(frame, "Song(s) was added to database successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 					tfSearch.setText("");
 					loadSongs("");
 				}
@@ -274,7 +312,7 @@ public class App extends JFrame {
 					int selectedID = selectedSong.getID();
 					selected = -1;
 					songs.removeSong(selectedID);
-					JOptionPane.showMessageDialog(app, "Song(s) was deleted to database successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(frame, "Song(s) was deleted to database successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 					tfSearch.setText("");
 					loadSongs("");
 				}
@@ -303,8 +341,8 @@ public class App extends JFrame {
 			player.terminate();
 			player = null;
 		}
-		
-		btnTogglePlay.setText("Pause");
+
+		btnTogglePlay.setIcon(imgPause);
 		try {
 			Song selectedSong = songsList.get(selected);
 			String location = selectedSong.getLocation();
@@ -354,17 +392,17 @@ public class App extends JFrame {
 
 					@Override
 					public void onStart() {
-						btnTogglePlay.setText("Pause");
+						btnTogglePlay.setIcon(imgPause);
 					}
 
 					@Override
 					public void onStop() {
-						btnTogglePlay.setText("Play");
+						btnTogglePlay.setIcon(imgPlay);
 					}
 				});
 				player.play();
 			} else {
-				JOptionPane.showMessageDialog(this, "File was not found on the system", "Failed", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(frame, "File was not found on the system", "Failed", JOptionPane.ERROR_MESSAGE);
 			}
 		} catch (Exception exception) {
 			exception.printStackTrace();
