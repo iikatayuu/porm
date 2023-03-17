@@ -44,6 +44,7 @@ import tk.porm.player.objects.Song;
 import tk.porm.player.objects.Songs;
 import tk.porm.player.objects.SongPlayer;
 import tk.porm.player.utils.ImagePanel;
+import tk.porm.player.utils.SystemBrowser;
 
 public class App {
 	private JFrame frame;
@@ -201,7 +202,7 @@ public class App {
 		contentPane.add(searchPane);
 
 		tfSearch = new JTextField();
-		tfSearch.setBounds(0, 10, 370, 23);
+		tfSearch.setBounds(0, 10, 380, 23);
 		tfSearch.setColumns(10);
 		searchPane.add(tfSearch);
 
@@ -305,6 +306,15 @@ public class App {
 		JButton btnDelete = new JButton("Remove Selected");
 		btnDelete.setBounds(260, 8, 115, 23);
 		actionsPane.add(btnDelete);
+		
+		JButton btnOpenConverter = new JButton("YT Downloader");
+		btnOpenConverter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SystemBrowser.open("https://yt-downloader.eidoriantan.me");
+			}
+		});
+		btnOpenConverter.setBounds(0, 8, 128, 23);
+		actionsPane.add(btnOpenConverter);
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selected >= 0) {
