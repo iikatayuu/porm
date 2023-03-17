@@ -30,6 +30,7 @@ import javax.swing.JFileChooser;
 import javax.swing.ImageIcon;
 import javax.swing.BorderFactory;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -137,17 +138,17 @@ public class App {
 		}
 
 		labelTitle = new JLabel("SONG TITLE", SwingConstants.CENTER);
-		labelTitle.setFont(new Font("Tahoma", Font.BOLD, 18));
-		labelTitle.setBounds(10, 141, 200, 23);
+		labelTitle.setFont(labelTitle.getFont().deriveFont(labelTitle.getFont().getStyle() | Font.BOLD, 16f));
+		labelTitle.setBounds(10, 140, 200, 23);
 		detailsPane.add(labelTitle);
 		
 		labelArtist = new JLabel("SONG ARTIST", SwingConstants.CENTER);
-		labelArtist.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		labelArtist.setBounds(10, 168, 200, 23);
+		labelArtist.setFont(UIManager.getFont("Label.font"));
+		labelArtist.setBounds(10, 160, 200, 23);
 		detailsPane.add(labelArtist);
 
 		progressBar = new JProgressBar();
-		progressBar.setBounds(30, 202, 160, 8);
+		progressBar.setBounds(30, 200, 160, 8);
 		detailsPane.add(progressBar);
 
 		JButton btnPrev = new JButton(imgPrev);
@@ -162,7 +163,7 @@ public class App {
 		btnPrev.setBorder(BorderFactory.createEmptyBorder());
 		btnPrev.setContentAreaFilled(false);
 		btnPrev.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnPrev.setBounds(30, 230, 30, 30);
+		btnPrev.setBounds(30, 220, 30, 30);
 		detailsPane.add(btnPrev);
 		
 		JButton btnNext = new JButton(imgNext);
@@ -177,7 +178,7 @@ public class App {
 		btnNext.setBorder(BorderFactory.createEmptyBorder());
 		btnNext.setContentAreaFilled(false);
 		btnNext.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnNext.setBounds(160, 230, 30, 30);
+		btnNext.setBounds(160, 220, 30, 30);
 		detailsPane.add(btnNext);
 
 		btnTogglePlay = new JButton(imgPause);
@@ -195,7 +196,7 @@ public class App {
 		btnTogglePlay.setBorder(BorderFactory.createEmptyBorder());
 		btnTogglePlay.setContentAreaFilled(false);
 		btnTogglePlay.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnTogglePlay.setBounds(95, 230, 30, 30);
+		btnTogglePlay.setBounds(95, 220, 30, 30);
 		detailsPane.add(btnTogglePlay);
 
 		JPanel searchPane = new JPanel();
@@ -382,30 +383,19 @@ public class App {
 		try {
 			Song selectedSong = songsList.get(selected);
 			String location = selectedSong.getLocation();
+			String title = selectedSong.getTitle();
+			String artist = selectedSong.getArtist();
 			File songFile = new File(location);
-			String title = "";
-			String artist = "";
 			byte[] imgData = null;
 
 			try {
 				Mp3File mp3file = new Mp3File(location);
-				
 				if (mp3file.hasId3v2Tag()) {
 					ID3v2 tags = mp3file.getId3v2Tag();
-					title = tags.getTitle();
-					artist = tags.getArtist();
 					imgData = tags.getAlbumImage();
-				} else if (mp3file.hasId3v1Tag()) {
-					ID3v1 tags = mp3file.getId3v1Tag();
-					title = tags.getTitle();
-					artist = tags.getArtist();
 				}
 			} catch (Exception exception) {
 				exception.printStackTrace();
-			}
-
-			if (title.equals("")) {
-				title = Paths.get(location).getFileName().toString();
 			}
 
 			labelTitle.setText(title);
