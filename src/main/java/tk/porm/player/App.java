@@ -1,6 +1,7 @@
 package tk.porm.player;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.io.File;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
@@ -259,9 +260,7 @@ public class App {
 		btnNext.setIcon(imgNext);
 		btnNext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (selected == -1) return;
-				selected = selected == songsList.size() - 1 ? 0 : selected + 1;
-				playSelected();
+				nextSong();
 			}
 		});
 		btnNext.setBorder(BorderFactory.createEmptyBorder());
@@ -583,6 +582,13 @@ public class App {
 						playing = false;
 						btnTogglePlay.setIcon(imgPlay);
 					}
+
+					@Override
+					public void onFinish() {
+						if (repeat == Settings.REPEAT.NONE) return;
+						if (repeat == Settings.REPEAT.ONCE) playSelected();
+						if (repeat == Settings.REPEAT.ALL) nextSong();
+					}
 				});
 				player.play();
 			} else {
@@ -591,6 +597,21 @@ public class App {
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		}
+	}
+
+	public void nextSong() {
+		if (selected == -1) return;
+		int length = songsList.size();
+		if (shuffle) {
+			Random random = new Random();
+			int selectedNew = selected;
+			while (selectedNew == selected) selectedNew = random.nextInt(length);
+			selected = selectedNew;
+		} else {
+			selected = selected == length - 1 ? 0 : selected + 1;
+		}
+
+		playSelected();
 	}
 
 	public void updateTheme() {
