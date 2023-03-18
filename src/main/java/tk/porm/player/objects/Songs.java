@@ -9,14 +9,15 @@ import tk.porm.player.interfaces.SongsInterface;
 
 public class Songs implements SongsInterface {
 	private Connection connection;
+	private ArrayList<Song> songs;
 
 	public Songs(Connection connection) {
 		this.connection = connection;
+		this.songs = new ArrayList<Song>();
 	}
 
 	@Override
 	public ArrayList<Song> getSongs(String search) {
-		ArrayList<Song> songs = new ArrayList<Song>();
 		search = "%" + search + "%";
 
 		try {
@@ -30,7 +31,8 @@ public class Songs implements SongsInterface {
 				String location = result.getString("location");
 				String title = result.getString("title");
 				String artist = result.getString("artist");
-				Song song = new Song(id, location, title, artist);
+				boolean liked = result.getBoolean("liked");
+				Song song = new Song(id, location, title, artist, liked);
 				songs.add(song);
 			}
 		} catch (Exception exception) {
@@ -62,5 +64,28 @@ public class Songs implements SongsInterface {
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		}
+	}
+
+	@Override
+	public ArrayList<Song> likeSong(int id, boolean like) {
+		try {
+			PreparedStatement statement = connection.prepareStatement("UPDATE songs SET liked = ? WHERE id = ?");
+			statement.setBoolean(1, like);
+			statement.setInt(2, id);
+			statement.execute();
+
+			for (int i = 0; i < songs.size(); i++) {
+				Song song = songs.get(i);
+				int songID = song.getID();
+				if (id == songID) {
+					song.setLike(like);
+					break;
+				}
+			}
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+
+		return songs;
 	}
 }

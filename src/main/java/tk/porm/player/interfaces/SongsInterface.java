@@ -7,4 +7,5 @@ public interface SongsInterface {
 	public ArrayList<Song> getSongs(String search);
 	public void addSong(String location, String title, String artist);
 	public void removeSong(int id);
+	public ArrayList<Song> likeSong(int id, boolean like);
 }

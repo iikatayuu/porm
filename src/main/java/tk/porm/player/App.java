@@ -89,6 +89,7 @@ public class App {
 	private Settings.THEME theme;
 	private Settings.REPEAT repeat;
 	private boolean shuffle;
+	private boolean liked;
 
 	private ImageMap mapImage;
 	private ImageIcon imgPrev;
@@ -330,7 +331,16 @@ public class App {
 
 		btnHeart = new JButton();
 		btnHeart.setToolTipText("Like/dislike song");
-		btnHeart.setIcon(imgNoHeart);
+		btnHeart.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selected == -1) return;
+				Song selectedSong = songsList.get(selected);
+				int songID = selectedSong.getID();
+				songsList = songs.likeSong(songID, !liked);
+				btnHeart.setIcon(liked ? imgNoHeart : imgHeart);
+				liked = !liked;
+			}
+		});
 		btnHeart.setBorder(BorderFactory.createEmptyBorder());
 		btnHeart.setContentAreaFilled(false);
 		btnHeart.setBounds(170, 320, 15, 15);
@@ -535,8 +545,12 @@ public class App {
 			String location = selectedSong.getLocation();
 			String title = selectedSong.getTitle();
 			String artist = selectedSong.getArtist();
+			boolean liked = selectedSong.getLiked();
 			File songFile = new File(location);
 			byte[] imgData = null;
+
+			this.liked = liked;
+			btnHeart.setIcon(liked ? imgHeart : imgNoHeart);
 
 			try {
 				Mp3File mp3file = new Mp3File(location);
@@ -655,7 +669,7 @@ public class App {
 		if (repeat == Settings.REPEAT.ONCE) btnRepeat.setIcon(imgRepeat1);
 
 		btnShuffle.setIcon(shuffle ? imgShuffle : imgNoShuffle);
-		btnHeart.setIcon(imgNoHeart);
+		btnHeart.setIcon(liked ? imgHeart : imgNoHeart);
 
 		try {
 			UIManager.setLookAndFeel(laf);
