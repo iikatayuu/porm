@@ -18,8 +18,11 @@ import java.awt.Graphics;
 import java.awt.Image;
 
 import javax.imageio.ImageIO;
-import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -48,6 +51,7 @@ import tk.porm.player.interfaces.PlayerListener;
 import tk.porm.player.objects.Song;
 import tk.porm.player.objects.Songs;
 import tk.porm.player.objects.SongPlayer;
+import tk.porm.player.utils.ImageMap;
 import tk.porm.player.utils.ImagePanel;
 import tk.porm.player.utils.SystemBrowser;
 
@@ -66,10 +70,7 @@ public class App {
 	private JTextField tfSearch;
 	private JProgressBar progressBar;
 
-	private ImageIcon imgPrev;
-	private ImageIcon imgNext;
-	private ImageIcon imgPlay;
-	private ImageIcon imgPause;
+	private ImageMap mapImage;
 	private ImageIcon imgAlbum;
 	private int albumWidth;
 	private int albumHeight;
@@ -89,36 +90,21 @@ public class App {
 	}
 
 	public App(Connection connection) {
+		ClassLoader loader = getClass().getClassLoader();
 		this.songs = new Songs(connection);
+		this.mapImage = new ImageMap(loader);
 		this.selected = -1;
-		
+
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		}
 
-		ClassLoader loader = getClass().getClassLoader();
 		URL iconRes = loader.getResource("icon.png");
 		String iconPath = iconRes.getPath();
 		ImageIcon imgIcon = new ImageIcon(iconPath);
 		Image icon = imgIcon.getImage();
-
-		URL imgPrevRes = loader.getResource("prev.png");
-		String imgPrevPath = imgPrevRes.getPath();
-		imgPrev = new ImageIcon(imgPrevPath);
-
-		URL imgNextRes = loader.getResource("next.png");
-		String imgNextPath = imgNextRes.getPath();
-		imgNext = new ImageIcon(imgNextPath);
-
-		URL imgPlayRes = loader.getResource("play.png");
-		String imgPlayPath = imgPlayRes.getPath();
-		imgPlay = new ImageIcon(imgPlayPath);
-
-		URL imgPauseRes = loader.getResource("pause.png");
-		String imgPausePath = imgPauseRes.getPath();
-		imgPause = new ImageIcon(imgPausePath);
 
 		URL resource = loader.getResource("album.jpg");
 		String imagePath = resource.getPath();
@@ -129,7 +115,51 @@ public class App {
 		frame.setIconImage(icon);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setBounds(100, 100, 720, 500);
+		frame.setBounds(100, 100, 720, 520);
+
+		JMenuBar menuMainBar = new JMenuBar();
+		JMenu menuFile = new JMenu("File");
+		JMenu menuAbout = new JMenu("About");
+		menuFile.setMnemonic('F');
+		menuAbout.setMnemonic('A');
+
+		JMenuItem menuAddFile = new JMenuItem("Add files...");
+		menuAddFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addSongs();
+			}
+		});
+		
+		JMenuItem menuExit = new JMenuItem("Exit");
+		menuExit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				frame.dispose();
+			}
+		});
+
+		JMenuItem menuYTDownloader = new JMenuItem("Youtube Downloader");
+		menuYTDownloader.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SystemBrowser.open("https://yt-downloader.eidoriantan.me");
+			}
+		});
+
+		JMenuItem menuAboutUs = new JMenuItem("About Us");
+		menuAboutUs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				AboutDialog aboutDialog = new AboutDialog(frame);
+				aboutDialog.setVisible(true);
+			}
+		});
+
+		menuFile.add(menuAddFile);
+		menuFile.add(menuExit);
+		menuAbout.add(menuAboutUs);
+		menuAbout.add(menuYTDownloader);
+		menuMainBar.add(menuFile);
+		menuMainBar.add(menuAbout);
+		frame.setJMenuBar(menuMainBar);
+
 		JPanel contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -161,11 +191,11 @@ public class App {
 		detailsPane.add(labelArtist);
 
 		progressBar = new JProgressBar();
-		progressBar.setBounds(30, 200, 160, 8);
+		progressBar.setBounds(30, 200, 160, 10);
 		detailsPane.add(progressBar);
 
-		JButton btnPrev = new JButton(imgPrev);
-		btnPrev.setIcon(imgPrev);
+		JButton btnPrev = new JButton();
+		btnPrev.setIcon(mapImage.getIcon(ImageMap.ImageKey.PREV_LIGHT));
 		btnPrev.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selected == -1) return;
@@ -176,11 +206,11 @@ public class App {
 		btnPrev.setBorder(BorderFactory.createEmptyBorder());
 		btnPrev.setContentAreaFilled(false);
 		btnPrev.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnPrev.setBounds(30, 220, 30, 30);
+		btnPrev.setBounds(30, 230, 30, 30);
 		detailsPane.add(btnPrev);
 
-		JButton btnNext = new JButton(imgNext);
-		btnNext.setIcon(imgNext);
+		JButton btnNext = new JButton();
+		btnNext.setIcon(mapImage.getIcon(ImageMap.ImageKey.NEXT_LIGHT));
 		btnNext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selected == -1) return;
@@ -191,11 +221,11 @@ public class App {
 		btnNext.setBorder(BorderFactory.createEmptyBorder());
 		btnNext.setContentAreaFilled(false);
 		btnNext.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnNext.setBounds(160, 220, 30, 30);
+		btnNext.setBounds(160, 230, 30, 30);
 		detailsPane.add(btnNext);
 
-		btnTogglePlay = new JButton(imgPause);
-		btnTogglePlay.setIcon(imgPlay);
+		btnTogglePlay = new JButton();
+		btnTogglePlay.setIcon(mapImage.getIcon(ImageMap.ImageKey.PLAY_LIGHT));
 		btnTogglePlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (player == null) return;
@@ -209,17 +239,8 @@ public class App {
 		btnTogglePlay.setBorder(BorderFactory.createEmptyBorder());
 		btnTogglePlay.setContentAreaFilled(false);
 		btnTogglePlay.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnTogglePlay.setBounds(95, 220, 30, 30);
+		btnTogglePlay.setBounds(85, 220, 50, 50);
 		detailsPane.add(btnTogglePlay);
-
-		JButton btnOpenConverter = new JButton("YT Downloader");
-		btnOpenConverter.setBounds(10, 428, 200, 23);
-		detailsPane.add(btnOpenConverter);
-		btnOpenConverter.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				SystemBrowser.open("https://yt-downloader.eidoriantan.me");
-			}
-		});
 
 		JPanel searchPane = new JPanel();
 		searchPane.setBounds(220, 0, 480, 40);
@@ -294,56 +315,12 @@ public class App {
 		contentPane.add(actionsPane);
 		actionsPane.setLayout(null);
 
-		JButton btnBrowse = new JButton("Add files");
+		JButton btnBrowse = new JButton("Add files...");
 		btnBrowse.setBounds(385, 8, 90, 23);
 		actionsPane.add(btnBrowse);
 		btnBrowse.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				FileNameExtensionFilter filter = new FileNameExtensionFilter("MPEG3 Songs", "mp3");
-				chooser.setMultiSelectionEnabled(true);
-				chooser.setAcceptAllFileFilterUsed(false);
-				chooser.addChoosableFileFilter(filter);
-				chooser.showOpenDialog(frame);
-				File[] files = chooser.getSelectedFiles();
-				for (int i = 0; i < files.length; i++) {
-					File file = files[i];
-					String location = file.getPath();
-					String title = "";
-					String artist = "";
-
-					try {
-						Mp3File mp3file = new Mp3File(location);
-						
-						if (mp3file.hasId3v2Tag()) {
-							ID3v2 tags = mp3file.getId3v2Tag();
-							title = tags.getTitle();
-							artist = tags.getArtist();
-						} else if (mp3file.hasId3v1Tag()) {
-							ID3v1 tags = mp3file.getId3v1Tag();
-							title = tags.getTitle();
-							artist = tags.getArtist();
-						}
-					} catch (Exception exception) {
-						exception.printStackTrace();
-					}
-
-					if (title == null || title.equals("")) {
-						title = Paths.get(location).getFileName().toString();
-					}
-
-					if (artist == null) {
-						artist = "";
-					}
-
-					songs.addSong(location, title, artist);
-				}
-
-				if (files.length > 0) {
-					JOptionPane.showMessageDialog(frame, "Song(s) was added to database successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-					tfSearch.setText("");
-					loadSongs("");
-				}
+				addSongs();
 			}
 		});
 		
@@ -365,6 +342,54 @@ public class App {
 		});
 
 		loadSongs("");
+	}
+
+	public void addSongs() {
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("MPEG3 Songs", "mp3");
+		chooser.setMultiSelectionEnabled(true);
+		chooser.setAcceptAllFileFilterUsed(false);
+		chooser.addChoosableFileFilter(filter);
+		chooser.showOpenDialog(frame);
+		File[] files = chooser.getSelectedFiles();
+		for (int i = 0; i < files.length; i++) {
+			File file = files[i];
+			String location = file.getPath();
+			String title = "";
+			String artist = "";
+
+			try {
+				Mp3File mp3file = new Mp3File(location);
+				
+				if (mp3file.hasId3v2Tag()) {
+					ID3v2 tags = mp3file.getId3v2Tag();
+					title = tags.getTitle();
+					artist = tags.getArtist();
+				} else if (mp3file.hasId3v1Tag()) {
+					ID3v1 tags = mp3file.getId3v1Tag();
+					title = tags.getTitle();
+					artist = tags.getArtist();
+				}
+			} catch (Exception exception) {
+				exception.printStackTrace();
+			}
+
+			if (title == null || title.equals("")) {
+				title = Paths.get(location).getFileName().toString();
+			}
+
+			if (artist == null) {
+				artist = "";
+			}
+
+			songs.addSong(location, title, artist);
+		}
+
+		if (files.length > 0) {
+			JOptionPane.showMessageDialog(frame, "Song(s) was added to database successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+			tfSearch.setText("");
+			loadSongs("");
+		}
 	}
 
 	public void loadSongs(String search) {
@@ -406,7 +431,7 @@ public class App {
 			player = null;
 		}
 
-		btnTogglePlay.setIcon(imgPause);
+		btnTogglePlay.setIcon(mapImage.getIcon(ImageMap.ImageKey.PAUSE_LIGHT));
 		try {
 			Song selectedSong = songsList.get(selected);
 			String location = selectedSong.getLocation();
@@ -450,12 +475,12 @@ public class App {
 
 					@Override
 					public void onStart() {
-						btnTogglePlay.setIcon(imgPause);
+						btnTogglePlay.setIcon(mapImage.getIcon(ImageMap.ImageKey.PAUSE_LIGHT));
 					}
 
 					@Override
 					public void onStop() {
-						btnTogglePlay.setIcon(imgPlay);
+						btnTogglePlay.setIcon(mapImage.getIcon(ImageMap.ImageKey.PLAY_LIGHT));
 					}
 				});
 				player.play();
