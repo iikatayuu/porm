@@ -24,6 +24,28 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `settings`
+--
+
+DROP TABLE IF EXISTS `settings`;
+CREATE TABLE IF NOT EXISTS `settings` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'Unique ID',
+  `name` varchar(255) NOT NULL COMMENT 'Settings name',
+  `value` text NOT NULL COMMENT 'Settings value',
+  `last` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Last update',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `settings`
+--
+
+INSERT INTO `settings` (`id`, `name`, `value`, `last`) VALUES
+(1, 'theme', 'dark', '2023-03-18 12:22:02');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `songs`
 --
 
