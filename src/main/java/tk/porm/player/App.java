@@ -28,13 +28,15 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JProgressBar;
 import javax.swing.JFileChooser;
+import javax.swing.UIManager;
 import javax.swing.ImageIcon;
 import javax.swing.BorderFactory;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
+import javax.swing.ListSelectionModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 
 import com.mpatric.mp3agic.Mp3File;
@@ -267,6 +269,12 @@ public class App {
 				}
 			}
 		});
+		songsListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		JTableHeader tableHeader = songsListTable.getTableHeader();
+		tableHeader.setReorderingAllowed(false);
+		tableHeader.setResizingAllowed(false);
+
 		TableColumnModel model = songsListTable.getColumnModel();
 		songsListTable.setRowHeight(120);
 		model.getColumn(0).setPreferredWidth(20);
