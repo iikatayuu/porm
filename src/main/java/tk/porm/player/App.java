@@ -170,7 +170,7 @@ public class App {
 		btnPrev.setFont(new Font("Tahoma", Font.PLAIN, 10));
 		btnPrev.setBounds(30, 220, 30, 30);
 		detailsPane.add(btnPrev);
-		
+
 		JButton btnNext = new JButton(imgNext);
 		btnNext.setIcon(imgNext);
 		btnNext.addActionListener(new ActionListener() {
@@ -204,6 +204,15 @@ public class App {
 		btnTogglePlay.setBounds(95, 220, 30, 30);
 		detailsPane.add(btnTogglePlay);
 
+		JButton btnOpenConverter = new JButton("YT Downloader");
+		btnOpenConverter.setBounds(10, 428, 200, 23);
+		detailsPane.add(btnOpenConverter);
+		btnOpenConverter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SystemBrowser.open("https://yt-downloader.eidoriantan.me");
+			}
+		});
+
 		JPanel searchPane = new JPanel();
 		searchPane.setBounds(220, 0, 480, 40);
 		searchPane.setLayout(null);
@@ -224,7 +233,7 @@ public class App {
 
 		JButton btnSearch = new JButton("Search");
 		btnSearch.addActionListener(actionSearch);
-		btnSearch.setBounds(390, 10, 80, 23);
+		btnSearch.setBounds(385, 10, 90, 23);
 		searchPane.add(btnSearch);
 
 		JPanel songsListPane = new JPanel();
@@ -324,18 +333,9 @@ public class App {
 			}
 		});
 		
-		JButton btnDelete = new JButton("Remove Selected");
-		btnDelete.setBounds(260, 8, 115, 23);
+		JButton btnDelete = new JButton("Remove");
+		btnDelete.setBounds(285, 8, 90, 23);
 		actionsPane.add(btnDelete);
-
-		JButton btnOpenConverter = new JButton("YT Downloader");
-		btnOpenConverter.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				SystemBrowser.open("https://yt-downloader.eidoriantan.me");
-			}
-		});
-		btnOpenConverter.setBounds(0, 8, 128, 23);
-		actionsPane.add(btnOpenConverter);
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selected >= 0) {
