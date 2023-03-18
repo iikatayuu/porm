@@ -78,11 +78,16 @@ public class App {
 	private JButton btnPrev;
 	private JButton btnNext;
 	private JButton btnTogglePlay;
+	private JButton btnRepeat;
+	private JButton btnShuffle;
+	private JButton btnHeart;
 	private JTextField tfSearch;
 	private JProgressBar progressBar;
 
 	private Settings settings;
 	private Settings.THEME theme;
+	private Settings.REPEAT repeat;
+	private boolean shuffle;
 
 	private ImageMap mapImage;
 	private ImageIcon imgPrev;
@@ -90,6 +95,13 @@ public class App {
 	private ImageIcon imgPause;
 	private ImageIcon imgPlay;
 	private ImageIcon imgAlbum;
+	private ImageIcon imgHeart;
+	private ImageIcon imgNoHeart;
+	private ImageIcon imgRepeat;
+	private ImageIcon imgRepeat1;
+	private ImageIcon imgNoRepeat;
+	private ImageIcon imgShuffle;
+	private ImageIcon imgNoShuffle;
 	private int albumWidth;
 	private int albumHeight;
 
@@ -112,6 +124,8 @@ public class App {
 		this.songs = new Songs(connection);
 		this.settings = new Settings(connection);
 		this.theme = settings.getTheme();
+		this.repeat = settings.getRepeat();
+		this.shuffle = settings.getShuffle();
 		this.mapImage = new ImageMap(loader);
 		this.selected = -1;
 		this.playing = false;
@@ -237,7 +251,6 @@ public class App {
 		});
 		btnPrev.setBorder(BorderFactory.createEmptyBorder());
 		btnPrev.setContentAreaFilled(false);
-		btnPrev.setFont(new Font("Tahoma", Font.PLAIN, 10));
 		btnPrev.setBounds(30, 375, 30, 30);
 		detailsPane.add(btnPrev);
 
@@ -253,7 +266,6 @@ public class App {
 		});
 		btnNext.setBorder(BorderFactory.createEmptyBorder());
 		btnNext.setContentAreaFilled(false);
-		btnNext.setFont(new Font("Tahoma", Font.PLAIN, 10));
 		btnNext.setBounds(160, 375, 30, 30);
 		detailsPane.add(btnNext);
 
@@ -272,9 +284,58 @@ public class App {
 		});
 		btnTogglePlay.setBorder(BorderFactory.createEmptyBorder());
 		btnTogglePlay.setContentAreaFilled(false);
-		btnTogglePlay.setFont(new Font("Tahoma", Font.PLAIN, 10));
 		btnTogglePlay.setBounds(85, 365, 50, 50);
 		detailsPane.add(btnTogglePlay);
+
+		btnRepeat = new JButton();
+		btnRepeat.setToolTipText("Enable repeat");
+		btnRepeat.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (repeat == Settings.REPEAT.NONE) {
+					settings.setRepeat(Settings.REPEAT.ALL);
+					btnRepeat.setIcon(imgRepeat);
+				}
+
+				if (repeat == Settings.REPEAT.ALL) {
+					settings.setRepeat(Settings.REPEAT.ONCE);
+					btnRepeat.setIcon(imgRepeat1);
+				}
+
+				if (repeat == Settings.REPEAT.ONCE) {
+					settings.setRepeat(Settings.REPEAT.NONE);
+					btnRepeat.setIcon(imgNoRepeat);
+				}
+
+				repeat = settings.getRepeat();
+			}
+		});
+		btnRepeat.setBorder(BorderFactory.createEmptyBorder());
+		btnRepeat.setContentAreaFilled(false);
+		btnRepeat.setBounds(30, 320, 15, 15);
+		detailsPane.add(btnRepeat);
+		
+		btnShuffle = new JButton();
+		btnShuffle.setToolTipText("Shuffle list");
+		btnShuffle.setIcon(imgNoShuffle);
+		btnShuffle.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				settings.setShuffle(!shuffle);
+				btnShuffle.setIcon(shuffle ? imgNoShuffle : imgShuffle);
+				shuffle = settings.getShuffle();
+			}
+		});
+		btnShuffle.setBorder(BorderFactory.createEmptyBorder());
+		btnShuffle.setContentAreaFilled(false);
+		btnShuffle.setBounds(102, 320, 15, 15);
+		detailsPane.add(btnShuffle);
+
+		btnHeart = new JButton();
+		btnHeart.setToolTipText("Like/dislike song");
+		btnHeart.setIcon(imgNoHeart);
+		btnHeart.setBorder(BorderFactory.createEmptyBorder());
+		btnHeart.setContentAreaFilled(false);
+		btnHeart.setBounds(170, 320, 15, 15);
+		detailsPane.add(btnHeart);
 
 		JPanel searchPane = new JPanel();
 		searchPane.setBounds(220, 0, 480, 40);
@@ -342,7 +403,7 @@ public class App {
 		model.getColumn(0).setPreferredWidth(20);
 
 		JScrollPane scrollPane = new JScrollPane(songsListTable);
-		scrollPane.setBounds(0, 0, 480, 380);
+		scrollPane.setBounds(0, 0, 475, 380);
 		songsListPane.add(scrollPane);
 
 		JPanel actionsPane = new JPanel();
@@ -353,17 +414,16 @@ public class App {
 		JButton btnBrowse = new JButton("Add files...");
 		btnBrowse.setToolTipText("Add file(s) to list");
 		btnBrowse.setBounds(385, 8, 90, 23);
-		actionsPane.add(btnBrowse);
 		btnBrowse.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				addSongs();
 			}
 		});
+		actionsPane.add(btnBrowse);
 
 		JButton btnDelete = new JButton("Remove");
 		btnDelete.setToolTipText("Remove selected song");
 		btnDelete.setBounds(285, 8, 90, 23);
-		actionsPane.add(btnDelete);
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selected >= 0) {
@@ -377,6 +437,7 @@ public class App {
 				}
 			}
 		});
+		actionsPane.add(btnDelete);
 
 		updateTheme();
 		loadSongs("");
@@ -542,17 +603,38 @@ public class App {
 			imgNext = mapImage.getIcon(ImageMap.ImageKey.NEXT_DARK);
 			imgPlay = mapImage.getIcon(ImageMap.ImageKey.PLAY_DARK);
 			imgPause = mapImage.getIcon(ImageMap.ImageKey.PAUSE_DARK);
+			imgHeart = mapImage.getIcon(ImageMap.ImageKey.HEART_DARK);
+			imgNoHeart = mapImage.getIcon(ImageMap.ImageKey.NO_HEART_DARK);
+			imgRepeat = mapImage.getIcon(ImageMap.ImageKey.REPEAT_DARK);
+			imgRepeat1 = mapImage.getIcon(ImageMap.ImageKey.REPEAT_1_DARK);
+			imgNoRepeat = mapImage.getIcon(ImageMap.ImageKey.NO_REPEAT_DARK);
+			imgShuffle = mapImage.getIcon(ImageMap.ImageKey.SHUFFLE_DARK);
+			imgNoShuffle = mapImage.getIcon(ImageMap.ImageKey.NO_SHUFFLE_DARK);
 		} else {
 			laf = new FlatLightLaf();
 			imgPrev = mapImage.getIcon(ImageMap.ImageKey.PREV_LIGHT);
 			imgNext = mapImage.getIcon(ImageMap.ImageKey.NEXT_LIGHT);
 			imgPlay = mapImage.getIcon(ImageMap.ImageKey.PLAY_LIGHT);
 			imgPause = mapImage.getIcon(ImageMap.ImageKey.PAUSE_LIGHT);
+			imgHeart = mapImage.getIcon(ImageMap.ImageKey.HEART_LIGHT);
+			imgNoHeart = mapImage.getIcon(ImageMap.ImageKey.NO_HEART_LIGHT);
+			imgRepeat = mapImage.getIcon(ImageMap.ImageKey.REPEAT_LIGHT);
+			imgRepeat1 = mapImage.getIcon(ImageMap.ImageKey.REPEAT_1_LIGHT);
+			imgNoRepeat = mapImage.getIcon(ImageMap.ImageKey.NO_REPEAT_LIGHT);
+			imgShuffle = mapImage.getIcon(ImageMap.ImageKey.SHUFFLE_LIGHT);
+			imgNoShuffle = mapImage.getIcon(ImageMap.ImageKey.NO_SHUFFLE_LIGHT);
 		}
 
 		btnPrev.setIcon(imgPrev);
 		btnNext.setIcon(imgNext);
 		btnTogglePlay.setIcon(playing ? imgPause : imgPlay);
+
+		if (repeat == Settings.REPEAT.NONE) btnRepeat.setIcon(imgNoRepeat);
+		if (repeat == Settings.REPEAT.ALL) btnRepeat.setIcon(imgRepeat);
+		if (repeat == Settings.REPEAT.ONCE) btnRepeat.setIcon(imgRepeat1);
+
+		btnShuffle.setIcon(shuffle ? imgShuffle : imgNoShuffle);
+		btnHeart.setIcon(imgNoHeart);
 
 		try {
 			UIManager.setLookAndFeel(laf);
