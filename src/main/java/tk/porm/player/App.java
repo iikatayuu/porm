@@ -91,6 +91,12 @@ public class App {
 	public App(Connection connection) {
 		this.songs = new Songs(connection);
 		this.selected = -1;
+		
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
 
 		ClassLoader loader = getClass().getClassLoader();
 		URL iconRes = loader.getResource("icon.png");
