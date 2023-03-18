@@ -222,10 +222,11 @@ public class App {
 		detailsPane.add(labelArtist);
 
 		progressBar = new JProgressBar();
-		progressBar.setBounds(30, 200, 160, 10);
+		progressBar.setBounds(30, 350, 160, 4);
 		detailsPane.add(progressBar);
 
 		btnPrev = new JButton();
+		btnPrev.setToolTipText("Play previous song");
 		btnPrev.setIcon(imgPrev);
 		btnPrev.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -237,10 +238,11 @@ public class App {
 		btnPrev.setBorder(BorderFactory.createEmptyBorder());
 		btnPrev.setContentAreaFilled(false);
 		btnPrev.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnPrev.setBounds(30, 230, 30, 30);
+		btnPrev.setBounds(30, 375, 30, 30);
 		detailsPane.add(btnPrev);
 
 		btnNext = new JButton();
+		btnNext.setToolTipText("Play next song");
 		btnNext.setIcon(imgNext);
 		btnNext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -252,10 +254,11 @@ public class App {
 		btnNext.setBorder(BorderFactory.createEmptyBorder());
 		btnNext.setContentAreaFilled(false);
 		btnNext.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnNext.setBounds(160, 230, 30, 30);
+		btnNext.setBounds(160, 375, 30, 30);
 		detailsPane.add(btnNext);
 
 		btnTogglePlay = new JButton();
+		btnTogglePlay.setToolTipText("Toggle song");
 		btnTogglePlay.setIcon(imgPlay);
 		btnTogglePlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -270,7 +273,7 @@ public class App {
 		btnTogglePlay.setBorder(BorderFactory.createEmptyBorder());
 		btnTogglePlay.setContentAreaFilled(false);
 		btnTogglePlay.setFont(new Font("Tahoma", Font.PLAIN, 10));
-		btnTogglePlay.setBounds(85, 220, 50, 50);
+		btnTogglePlay.setBounds(85, 365, 50, 50);
 		detailsPane.add(btnTogglePlay);
 
 		JPanel searchPane = new JPanel();
@@ -287,17 +290,18 @@ public class App {
 
 		tfSearch = new JTextField();
 		tfSearch.addActionListener(actionSearch);
-		tfSearch.setBounds(0, 10, 380, 23);
+		tfSearch.setBounds(0, 10, 375, 23);
 		tfSearch.setColumns(10);
 		searchPane.add(tfSearch);
 
 		JButton btnSearch = new JButton("Search");
+		btnSearch.setToolTipText("Trigger search");
 		btnSearch.addActionListener(actionSearch);
 		btnSearch.setBounds(385, 10, 90, 23);
 		searchPane.add(btnSearch);
 
 		JPanel songsListPane = new JPanel();
-		songsListPane.setBounds(220, 40, 480, 380);
+		songsListPane.setBounds(220, 40, 475, 380);
 		songsListPane.setLayout(null);
 		contentPane.add(songsListPane);
 
@@ -347,6 +351,7 @@ public class App {
 		actionsPane.setLayout(null);
 
 		JButton btnBrowse = new JButton("Add files...");
+		btnBrowse.setToolTipText("Add file(s) to list");
 		btnBrowse.setBounds(385, 8, 90, 23);
 		actionsPane.add(btnBrowse);
 		btnBrowse.addActionListener(new ActionListener() {
@@ -356,6 +361,7 @@ public class App {
 		});
 
 		JButton btnDelete = new JButton("Remove");
+		btnDelete.setToolTipText("Remove selected song");
 		btnDelete.setBounds(285, 8, 90, 23);
 		actionsPane.add(btnDelete);
 		btnDelete.addActionListener(new ActionListener() {
