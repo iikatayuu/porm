@@ -13,6 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -22,6 +23,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -35,7 +37,9 @@ import javax.swing.UIManager;
 import javax.swing.ImageIcon;
 import javax.swing.BorderFactory;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.ListSelectionModel;
+import javax.swing.LookAndFeel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -46,11 +50,15 @@ import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.ID3v1;
 import com.mpatric.mp3agic.ID3v2;
 
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
+
 import tk.porm.player.database.DatabaseConnection;
 import tk.porm.player.interfaces.PlayerListener;
 import tk.porm.player.objects.Song;
 import tk.porm.player.objects.Songs;
 import tk.porm.player.objects.SongPlayer;
+import tk.porm.player.objects.Settings;
 import tk.porm.player.utils.ImageMap;
 import tk.porm.player.utils.ImagePanel;
 import tk.porm.player.utils.SystemBrowser;
@@ -61,16 +69,26 @@ public class App {
 	private Songs songs;
 	private ArrayList<Song> songsList;
 	private int selected;
+	private boolean playing;
 
 	private DefaultTableModel tableModel;
 	private ImagePanel albumImgPane;
 	private JLabel labelTitle;
 	private JLabel labelArtist;
+	private JButton btnPrev;
+	private JButton btnNext;
 	private JButton btnTogglePlay;
 	private JTextField tfSearch;
 	private JProgressBar progressBar;
 
+	private Settings settings;
+	private Settings.THEME theme;
+
 	private ImageMap mapImage;
+	private ImageIcon imgPrev;
+	private ImageIcon imgNext;
+	private ImageIcon imgPause;
+	private ImageIcon imgPlay;
 	private ImageIcon imgAlbum;
 	private int albumWidth;
 	private int albumHeight;
@@ -92,14 +110,11 @@ public class App {
 	public App(Connection connection) {
 		ClassLoader loader = getClass().getClassLoader();
 		this.songs = new Songs(connection);
+		this.settings = new Settings(connection);
+		this.theme = settings.getTheme();
 		this.mapImage = new ImageMap(loader);
 		this.selected = -1;
-
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception exception) {
-			exception.printStackTrace();
-		}
+		this.playing = false;
 
 		URL iconRes = loader.getResource("icon.png");
 		String iconPath = iconRes.getPath();
@@ -110,18 +125,20 @@ public class App {
 		String imagePath = resource.getPath();
 		imgAlbum = new ImageIcon(imagePath);
 
-		frame = new JFrame(); 
+		frame = new JFrame();
 		frame.setTitle("Player/Organizer Music");
 		frame.setIconImage(icon);
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setBounds(100, 100, 720, 520);
+		frame.setBounds(100, 100, 720, 500);
 
 		JMenuBar menuMainBar = new JMenuBar();
 		JMenu menuFile = new JMenu("File");
+		JMenu menuView = new JMenu("View");
 		JMenu menuAbout = new JMenu("About");
-		menuFile.setMnemonic('F');
-		menuAbout.setMnemonic('A');
+		menuFile.setMnemonic(KeyEvent.VK_F);
+		menuView.setMnemonic(KeyEvent.VK_V);
+		menuAbout.setMnemonic(KeyEvent.VK_A);
 
 		JMenuItem menuAddFile = new JMenuItem("Add files...");
 		menuAddFile.addActionListener(new ActionListener() {
@@ -129,13 +146,25 @@ public class App {
 				addSongs();
 			}
 		});
-		
+
 		JMenuItem menuExit = new JMenuItem("Exit");
 		menuExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				frame.dispose();
 			}
 		});
+
+		final JCheckBoxMenuItem menuTheme = new JCheckBoxMenuItem("Dark Mode");
+		menuTheme.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean isDark = menuTheme.isSelected();
+				settings.setTheme(isDark ? Settings.THEME.DARK : Settings.THEME.LIGHT);
+				theme = settings.getTheme();
+				updateTheme();
+				menuTheme.setSelected(theme == Settings.THEME.DARK);
+			}
+		});
+		menuTheme.setSelected(theme == Settings.THEME.DARK);
 
 		JMenuItem menuYTDownloader = new JMenuItem("Youtube Downloader");
 		menuYTDownloader.addActionListener(new ActionListener() {
@@ -154,9 +183,11 @@ public class App {
 
 		menuFile.add(menuAddFile);
 		menuFile.add(menuExit);
+		menuView.add(menuTheme);
 		menuAbout.add(menuAboutUs);
 		menuAbout.add(menuYTDownloader);
 		menuMainBar.add(menuFile);
+		menuMainBar.add(menuView);
 		menuMainBar.add(menuAbout);
 		frame.setJMenuBar(menuMainBar);
 
@@ -194,8 +225,8 @@ public class App {
 		progressBar.setBounds(30, 200, 160, 10);
 		detailsPane.add(progressBar);
 
-		JButton btnPrev = new JButton();
-		btnPrev.setIcon(mapImage.getIcon(ImageMap.ImageKey.PREV_LIGHT));
+		btnPrev = new JButton();
+		btnPrev.setIcon(imgPrev);
 		btnPrev.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selected == -1) return;
@@ -209,8 +240,8 @@ public class App {
 		btnPrev.setBounds(30, 230, 30, 30);
 		detailsPane.add(btnPrev);
 
-		JButton btnNext = new JButton();
-		btnNext.setIcon(mapImage.getIcon(ImageMap.ImageKey.NEXT_LIGHT));
+		btnNext = new JButton();
+		btnNext.setIcon(imgNext);
 		btnNext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selected == -1) return;
@@ -225,7 +256,7 @@ public class App {
 		detailsPane.add(btnNext);
 
 		btnTogglePlay = new JButton();
-		btnTogglePlay.setIcon(mapImage.getIcon(ImageMap.ImageKey.PLAY_LIGHT));
+		btnTogglePlay.setIcon(imgPlay);
 		btnTogglePlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (player == null) return;
@@ -323,7 +354,7 @@ public class App {
 				addSongs();
 			}
 		});
-		
+
 		JButton btnDelete = new JButton("Remove");
 		btnDelete.setBounds(285, 8, 90, 23);
 		actionsPane.add(btnDelete);
@@ -341,6 +372,7 @@ public class App {
 			}
 		});
 
+		updateTheme();
 		loadSongs("");
 	}
 
@@ -431,7 +463,7 @@ public class App {
 			player = null;
 		}
 
-		btnTogglePlay.setIcon(mapImage.getIcon(ImageMap.ImageKey.PAUSE_LIGHT));
+		btnTogglePlay.setIcon(imgPause);
 		try {
 			Song selectedSong = songsList.get(selected);
 			String location = selectedSong.getLocation();
@@ -475,18 +507,50 @@ public class App {
 
 					@Override
 					public void onStart() {
-						btnTogglePlay.setIcon(mapImage.getIcon(ImageMap.ImageKey.PAUSE_LIGHT));
+						playing = true;
+						btnTogglePlay.setIcon(imgPause);
 					}
 
 					@Override
 					public void onStop() {
-						btnTogglePlay.setIcon(mapImage.getIcon(ImageMap.ImageKey.PLAY_LIGHT));
+						playing = false;
+						btnTogglePlay.setIcon(imgPlay);
 					}
 				});
 				player.play();
 			} else {
 				JOptionPane.showMessageDialog(frame, "File was not found on the system", "Failed", JOptionPane.ERROR_MESSAGE);
 			}
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+	}
+
+	public void updateTheme() {
+		boolean isDark = theme == Settings.THEME.DARK;
+		LookAndFeel laf = null;
+
+		if (isDark) {
+			laf = new FlatDarkLaf();
+			imgPrev = mapImage.getIcon(ImageMap.ImageKey.PREV_DARK);
+			imgNext = mapImage.getIcon(ImageMap.ImageKey.NEXT_DARK);
+			imgPlay = mapImage.getIcon(ImageMap.ImageKey.PLAY_DARK);
+			imgPause = mapImage.getIcon(ImageMap.ImageKey.PAUSE_DARK);
+		} else {
+			laf = new FlatLightLaf();
+			imgPrev = mapImage.getIcon(ImageMap.ImageKey.PREV_LIGHT);
+			imgNext = mapImage.getIcon(ImageMap.ImageKey.NEXT_LIGHT);
+			imgPlay = mapImage.getIcon(ImageMap.ImageKey.PLAY_LIGHT);
+			imgPause = mapImage.getIcon(ImageMap.ImageKey.PAUSE_LIGHT);
+		}
+
+		btnPrev.setIcon(imgPrev);
+		btnNext.setIcon(imgNext);
+		btnTogglePlay.setIcon(playing ? imgPause : imgPlay);
+
+		try {
+			UIManager.setLookAndFeel(laf);
+			SwingUtilities.updateComponentTreeUI(frame);
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		}
