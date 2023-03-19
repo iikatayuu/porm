@@ -637,9 +637,9 @@ public class App {
 				timer = new Timer(1000, new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						if (currentTime < duration) {
+							currentTime++;
 							String currentStr = MP3Format.formatDuration(currentTime);
 							labelCurrentTime.setText(currentStr);
-							currentTime++;
 						} else {
 							timer.stop();
 						}
