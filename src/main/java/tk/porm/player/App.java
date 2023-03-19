@@ -3,10 +3,11 @@ package tk.porm.player;
 import java.util.ArrayList;
 import java.util.Random;
 import java.io.File;
+import java.io.InputStream;
 import java.io.ByteArrayInputStream;
-import java.net.URL;
 import java.nio.file.Paths;
 import java.sql.Connection;
+
 import java.awt.EventQueue;
 import java.awt.image.BufferedImage;
 import java.awt.event.MouseAdapter;
@@ -149,14 +150,18 @@ public class App {
 		this.selected = -1;
 		this.playing = false;
 
-		URL iconRes = loader.getResource("icon.png");
-		String iconPath = iconRes.getPath();
-		ImageIcon imgIcon = new ImageIcon(iconPath);
-		Image icon = imgIcon.getImage();
+		InputStream iconStream = loader.getResourceAsStream("icon.png");
+		InputStream albumStream = loader.getResourceAsStream("album.jpg");
+		BufferedImage icon = null;
 
-		URL resource = loader.getResource("album.jpg");
-		String imagePath = resource.getPath();
-		imgAlbum = new ImageIcon(imagePath);
+		try {
+			icon = ImageIO.read(iconStream);
+
+			BufferedImage album = ImageIO.read(albumStream);
+			imgAlbum = new ImageIcon(album);
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
 
 		frame = new JFrame();
 		frame.setTitle("Player/Organizer Music");

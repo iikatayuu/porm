@@ -1,8 +1,11 @@
 package tk.porm.player.utils;
 
-import java.net.URL;
+import java.io.InputStream;
 import java.util.HashMap;
 
+import java.awt.image.BufferedImage;
+
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 public class ImageMap {
@@ -41,11 +44,15 @@ public class ImageMap {
 	public ImageMap(ClassLoader loader) {
 		map = new HashMap<ImageKey, ImageIcon>();
 		for (ImageKey key : ImageKey.values()) {
-			final String filename = key.filename;
-			URL imgRes = loader.getResource(filename);
-			String imgPath = imgRes.getPath();
-			ImageIcon img = new ImageIcon(imgPath);
-			map.put(key, img);
+			String filename = key.filename;
+			InputStream stream = loader.getResourceAsStream(filename);
+			try {
+				BufferedImage image = ImageIO.read(stream);
+				ImageIcon img = new ImageIcon(image);
+				map.put(key, img);
+			} catch (Exception exception) {
+				exception.printStackTrace();
+			}
 		}
 	}
 
