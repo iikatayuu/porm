@@ -622,7 +622,7 @@ public class App {
 		tableModel.setRowCount(0);
 		TableColumnModel model = songsListTable.getColumnModel();
 		songsListTable.setRowHeight(isCompact ? 60 : 120);
-		model.getColumn(0).setPreferredWidth(isCompact ? 10 : 20);
+		model.getColumn(0).setPreferredWidth(10);
 
 		for (int i = 0; i < songsList.size(); i++) {
 			Song song = songsList.get(i);
