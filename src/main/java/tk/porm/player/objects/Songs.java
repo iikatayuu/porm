@@ -18,6 +18,7 @@ public class Songs implements SongsInterface {
 
 	@Override
 	public ArrayList<Song> getSongs(String search) {
+		songs.clear();
 		search = "%" + search + "%";
 
 		try {
