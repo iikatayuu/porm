@@ -1,6 +1,5 @@
 package tk.porm.player.objects;
 
-import java.awt.EventQueue;
 import java.io.File;
 
 import javazoom.jl.player.advanced.AdvancedPlayer;
@@ -33,19 +32,15 @@ public class SongPlayer {
 				try {
 					stream = new SongStream(file);
 					stream.setStreamListener(new StreamListener() {
+						private boolean isFinished;
+
 						@Override
 						public void progress(int read, int length) {
 							int gap = pause == 0 ? 0 : length - pause;
 							if (listener != null) {
 								int totalRead = read + gap;
 								listener.progress(totalRead, length);
-								if (totalRead == length) {
-									EventQueue.invokeLater(new Runnable() {
-										public void run() {
-											listener.onFinish();
-										}
-									});
-								}
+								if (totalRead == length) isFinished = true;
 							}
 						}
 
@@ -54,6 +49,7 @@ public class SongPlayer {
 							try {
 								int available = stream.available();
 								pause = available;
+								if (isFinished) listener.onFinish();
 							} catch (Exception exception) {
 								exception.printStackTrace();
 							}
