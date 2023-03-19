@@ -171,6 +171,11 @@ public class App {
                 if (confirm == JOptionPane.YES_OPTION) {
                 	try {
 						connection.close();
+						if (player != null) {
+							player.terminate();
+							player = null;
+						}
+
 						System.exit(0);
 					} catch (Exception exception) {
 						exception.printStackTrace();
