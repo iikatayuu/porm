@@ -1,13 +1,13 @@
 package tk.porm.player;
 
-import java.net.URL;
-import java.awt.Graphics;
+import java.io.InputStream;
+
 import java.awt.Rectangle;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
-import javax.swing.ImageIcon;
+import javax.imageio.ImageIO;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
@@ -21,15 +21,13 @@ public class AboutDialog extends JDialog {
 		super(parent, "POrM About Us", true);
 
 		ClassLoader loader = getClass().getClassLoader();
-		URL iconRes = loader.getResource("icon.png");
-		String iconPath = iconRes.getPath();
-		ImageIcon imgIcon = new ImageIcon(iconPath);
-
-		int iconWidth = imgIcon.getIconWidth();
-		int iconHeight = imgIcon.getIconHeight();
-		BufferedImage iconImg = new BufferedImage(iconWidth, iconHeight, BufferedImage.TYPE_INT_ARGB);
-		Graphics iconGraphics = iconImg.createGraphics();
-		imgIcon.paintIcon(null, iconGraphics, 0, 0);
+		InputStream iconStream = loader.getResourceAsStream("icon.png");
+		BufferedImage iconImg = null;
+		try {
+			iconImg = ImageIO.read(iconStream);
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
 
 		Rectangle parentBounds = parent.getBounds();
 		setResizable(false);
