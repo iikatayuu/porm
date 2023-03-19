@@ -15,6 +15,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.Point;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -25,6 +26,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JSeparator;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -34,6 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JProgressBar;
 import javax.swing.JFileChooser;
+import javax.swing.JPopupMenu;
 import javax.swing.UIManager;
 import javax.swing.ImageIcon;
 import javax.swing.BorderFactory;
@@ -44,6 +47,8 @@ import javax.swing.LookAndFeel;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
@@ -80,6 +85,7 @@ public class App {
 
 	private DefaultTableModel tableModel;
 	private ImagePanel albumImgPane;
+	private JTable songsListTable;
 	private JLabel labelTitle;
 	private JLabel labelArtist;
 	private JButton btnPrev;
@@ -190,6 +196,13 @@ public class App {
 		});
 		menuTheme.setSelected(theme == Settings.THEME.DARK);
 
+		JMenuItem menuMP3Tag = new JMenuItem("MP3Tag");
+		menuMP3Tag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SystemBrowser.open("https://mp3tag.js.org/editor");
+			}
+		});
+
 		JMenuItem menuYTDownloader = new JMenuItem("Youtube Downloader");
 		menuYTDownloader.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -208,8 +221,10 @@ public class App {
 		menuFile.add(menuAddFile);
 		menuFile.add(menuExit);
 		menuView.add(menuTheme);
-		menuAbout.add(menuAboutUs);
 		menuAbout.add(menuYTDownloader);
+		menuAbout.add(menuMP3Tag);
+		menuAbout.add(new JSeparator());
+		menuAbout.add(menuAboutUs);
 		menuMainBar.add(menuFile);
 		menuMainBar.add(menuView);
 		menuMainBar.add(menuAbout);
@@ -406,17 +421,79 @@ public class App {
 			}
 		};
 
-		final JTable songsListTable = new JTable(tableModel);
+		JMenuItem songPlay = new JMenuItem("Play");
+		songPlay.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				playSelected();
+			}
+		});
+
+		JMenuItem songRemove = new JMenuItem("Remove");
+		songRemove.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				removeSelected();
+			}
+		});
+
+		final JMenuItem songUp = new JMenuItem("Move Up");
+		songUp.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				songsList = songs.swapSong(selected, selected - 1);
+				displaySongs();
+			}
+		});
+
+		final JMenuItem songDown = new JMenuItem("Move Down");
+		songDown.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				songsList = songs.swapSong(selected, selected + 1);
+				displaySongs();
+			}
+		});
+
+		JPopupMenu songContextMenu = new JPopupMenu();
+		songContextMenu.addPopupMenuListener(new PopupMenuListener() {
+			@Override
+			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+				if (selected == 0) songUp.setEnabled(false);
+				if (selected == songsList.size() - 1) songDown.setEnabled(false);
+			}
+
+			@Override
+			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+				songUp.setEnabled(true);
+				songDown.setEnabled(true);
+			}
+
+			@Override
+			public void popupMenuCanceled(PopupMenuEvent e) {}
+		});
+
+		songContextMenu.add(songPlay);
+		songContextMenu.add(songRemove);
+		songContextMenu.add(songUp);
+		songContextMenu.add(songDown);
+
+		songsListTable = new JTable(tableModel);
 		songsListTable.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked (MouseEvent e) {
+			public void mouseClicked(MouseEvent e) {
 				int clicked = e.getClickCount();
 				selected = songsListTable.getSelectedRow();
 				if (clicked == 2) {
 					playSelected();
 				}
 			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				Point point = e.getPoint();
+				int currentRow = songsListTable.rowAtPoint(point);
+				selected = currentRow;
+				songsListTable.setRowSelectionInterval(currentRow, currentRow);
+			}
 		});
+		songsListTable.setComponentPopupMenu(songContextMenu);
 		songsListTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		JTableHeader tableHeader = songsListTable.getTableHeader();
@@ -451,15 +528,7 @@ public class App {
 		btnDelete.setBounds(285, 8, 90, 23);
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (selected >= 0) {
-					Song selectedSong = songsList.get(selected);
-					int selectedID = selectedSong.getID();
-					selected = -1;
-					songs.removeSong(selectedID);
-					JOptionPane.showMessageDialog(frame, "Song(s) was deleted to database successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-					tfSearch.setText("");
-					loadSongs("");
-				}
+				removeSelected();
 			}
 		});
 		actionsPane.add(btnDelete);
@@ -518,6 +587,10 @@ public class App {
 
 	public void loadSongs(String search) {
 		songsList = songs.getSongs(search);
+		displaySongs();
+	}
+
+	public void displaySongs() {
 		tableModel.setRowCount(0);
 
 		for (int i = 0; i < songsList.size(); i++) {
@@ -653,6 +726,18 @@ public class App {
 			}
 		} catch (Exception exception) {
 			exception.printStackTrace();
+		}
+	}
+
+	public void removeSelected() {
+		if (selected >= 0) {
+			Song selectedSong = songsList.get(selected);
+			int selectedID = selectedSong.getID();
+			selected = -1;
+			songs.removeSong(selectedID);
+			JOptionPane.showMessageDialog(frame, "Song(s) was deleted to database successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+			tfSearch.setText("");
+			loadSongs("");
 		}
 	}
 

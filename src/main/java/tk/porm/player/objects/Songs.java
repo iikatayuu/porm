@@ -1,6 +1,7 @@
 package tk.porm.player.objects;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,7 +23,7 @@ public class Songs implements SongsInterface {
 		search = "%" + search + "%";
 
 		try {
-			PreparedStatement statement = connection.prepareStatement("SELECT * FROM songs WHERE title LIKE ? OR artist LIKE ?");
+			PreparedStatement statement = connection.prepareStatement("SELECT * FROM songs WHERE title LIKE ? OR artist LIKE ? ORDER BY id ASC");
 			statement.setString(1, search);
 			statement.setString(2, search);
 
@@ -87,6 +88,37 @@ public class Songs implements SongsInterface {
 			exception.printStackTrace();
 		}
 
+		return songs;
+	}
+
+	@Override
+	public ArrayList<Song> swapSong(int indexA, int indexB) {
+		Song songA = songs.get(indexA);
+		Song songB = songs.get(indexB);
+		int idA = songA.getID();
+		int idB = songB.getID();
+
+		try {
+			PreparedStatement statementA = connection.prepareStatement("UPDATE songs SET id = -1 WHERE id = ?");
+			statementA.setInt(1, idA);
+			statementA.execute();
+
+			PreparedStatement statementB = connection.prepareStatement("UPDATE songs SET id = ? WHERE id = ?");
+			statementB.setInt(1, idA);
+			statementB.setInt(2, idB);
+			statementB.execute();
+
+			PreparedStatement statementC = connection.prepareStatement("UPDATE songs SET id = ? WHERE id = -1");
+			statementC.setInt(1, idB);
+			statementC.execute();
+
+			songA.setID(idB);
+			songB.setID(idA);
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+
+		Collections.swap(songs, indexA, indexB);
 		return songs;
 	}
 }

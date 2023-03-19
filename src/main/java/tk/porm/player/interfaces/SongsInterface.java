@@ -8,4 +8,5 @@ public interface SongsInterface {
 	public void addSong(String location, String title, String artist);
 	public void removeSong(int id);
 	public ArrayList<Song> likeSong(int id, boolean like);
+	public ArrayList<Song> swapSong(int indexA, int indexB);
 }
