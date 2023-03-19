@@ -718,12 +718,14 @@ public class App {
 					public void onStart() {
 						playing = true;
 						btnTogglePlay.setIcon(imgPause);
+						timer.start();
 					}
 
 					@Override
 					public void onStop() {
 						playing = false;
 						btnTogglePlay.setIcon(imgPlay);
+						timer.stop();
 					}
 
 					@Override
