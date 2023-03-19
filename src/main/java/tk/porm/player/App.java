@@ -102,6 +102,7 @@ public class App {
 	private Settings settings;
 	private Settings.THEME theme;
 	private Settings.REPEAT repeat;
+	private Settings.COMPACT compact;
 	private boolean shuffle;
 	private boolean liked;
 
@@ -142,6 +143,7 @@ public class App {
 		this.theme = settings.getTheme();
 		this.repeat = settings.getRepeat();
 		this.shuffle = settings.getShuffle();
+		this.compact = settings.getCompact();
 		this.mapImage = new ImageMap(loader);
 		this.selected = -1;
 		this.playing = false;
@@ -184,6 +186,18 @@ public class App {
 			}
 		});
 
+		final JCheckBoxMenuItem menuCompact = new JCheckBoxMenuItem("Compact Mode");
+		menuCompact.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean isCompact = menuCompact.isSelected();
+				settings.setCompact(isCompact ? Settings.COMPACT.ENABLED : Settings.COMPACT.DISABLED);
+				compact = settings.getCompact();
+				menuCompact.setSelected(compact == Settings.COMPACT.ENABLED);
+				displaySongs();
+			}
+		});
+		menuCompact.setSelected(compact == Settings.COMPACT.ENABLED);
+
 		final JCheckBoxMenuItem menuTheme = new JCheckBoxMenuItem("Dark Mode");
 		menuTheme.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -220,6 +234,7 @@ public class App {
 
 		menuFile.add(menuAddFile);
 		menuFile.add(menuExit);
+		menuView.add(menuCompact);
 		menuView.add(menuTheme);
 		menuAbout.add(menuYTDownloader);
 		menuAbout.add(menuMP3Tag);
@@ -500,10 +515,6 @@ public class App {
 		tableHeader.setReorderingAllowed(false);
 		tableHeader.setResizingAllowed(false);
 
-		TableColumnModel model = songsListTable.getColumnModel();
-		songsListTable.setRowHeight(120);
-		model.getColumn(0).setPreferredWidth(20);
-
 		JScrollPane scrollPane = new JScrollPane(songsListTable);
 		scrollPane.setBounds(0, 0, 475, 380);
 		songsListPane.add(scrollPane);
@@ -591,7 +602,11 @@ public class App {
 	}
 
 	public void displaySongs() {
+		boolean isCompact = compact == Settings.COMPACT.ENABLED;
 		tableModel.setRowCount(0);
+		TableColumnModel model = songsListTable.getColumnModel();
+		songsListTable.setRowHeight(isCompact ? 60 : 120);
+		model.getColumn(0).setPreferredWidth(isCompact ? 10 : 20);
 
 		for (int i = 0; i < songsList.size(); i++) {
 			Song song = songsList.get(i);
@@ -607,7 +622,8 @@ public class App {
 					if (imgData != null && imgData.length > 0) {
 						ByteArrayInputStream stream = new ByteArrayInputStream(imgData);
 						BufferedImage albumImg = ImageIO.read(stream);
-						Image resized = albumImg.getScaledInstance(110, 110, Image.SCALE_SMOOTH);
+						int albumSize = isCompact ? 55 : 110;
+						Image resized = albumImg.getScaledInstance(albumSize, albumSize, Image.SCALE_SMOOTH);
 						album = new ImageIcon(resized);
 					}
 				}

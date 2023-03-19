@@ -12,12 +12,14 @@ public class Settings implements SettingsInterface {
 	private THEME theme;
 	private REPEAT repeat;
 	private boolean shuffle;
+	private COMPACT compact;
 
 	public Settings(Connection connection) {
 		this.connection = connection;
 		this.theme = THEME.LIGHT;
 		this.repeat = REPEAT.NONE;
 		this.shuffle = false;
+		this.compact = COMPACT.ENABLED;
 
 		try {
 			Statement statement = connection.createStatement();
@@ -39,6 +41,10 @@ public class Settings implements SettingsInterface {
 
 				if (name.equals("shuffle")) {
 					shuffle = value.equals("true");
+				}
+
+				if (name.equals("compact")) {
+					compact = value.equals("true") ? COMPACT.ENABLED : COMPACT.DISABLED;
 				}
 			}
 		} catch (Exception exception) {
@@ -98,6 +104,23 @@ public class Settings implements SettingsInterface {
 			statement.setString(1, shuffle ? "true" : "false");
 			statement.execute();
 			this.shuffle = shuffle;
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+	}
+
+	@Override
+	public COMPACT getCompact() {
+		return compact;
+	}
+
+	@Override
+	public void setCompact(COMPACT compact) {
+		try {
+			PreparedStatement statement = connection.prepareStatement("UPDATE settings SET value=? WHERE name='compact'");
+			statement.setString(1, compact == COMPACT.ENABLED ? "true" : "false");
+			statement.execute();
+			this.compact = compact;
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		}

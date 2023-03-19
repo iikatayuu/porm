@@ -43,7 +43,8 @@ CREATE TABLE IF NOT EXISTS `settings` (
 INSERT INTO `settings` (`id`, `name`, `value`, `last`) VALUES
 (1, 'theme', 'dark', '2023-03-18 00:00:00'),
 (2, 'repeat', 'none', '2023-03-18 00:00:00'),
-(3, 'shuffle', 'false', '2023-03-18 00:00:00');
+(3, 'shuffle', 'false', '2023-03-18 00:00:00'),
+(4, 'compact', 'false', '2023-03-19 00:00:00');
 
 -- --------------------------------------------------------
 
