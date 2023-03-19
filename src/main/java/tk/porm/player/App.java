@@ -7,11 +7,12 @@ import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.sql.Connection;
-
 import java.awt.EventQueue;
 import java.awt.image.BufferedImage;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -136,7 +137,7 @@ public class App {
 		});
 	}
 
-	public App(Connection connection) {
+	public App(final Connection connection) {
 		ClassLoader loader = getClass().getClassLoader();
 		this.songs = new Songs(connection);
 		this.settings = new Settings(connection);
@@ -161,8 +162,23 @@ public class App {
 		frame.setTitle("Player/Organizer Music");
 		frame.setIconImage(icon);
 		frame.setResizable(false);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.setBounds(100, 100, 720, 500);
+		frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				int confirm = JOptionPane.showOptionDialog(frame, "Exit?", "Exit Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+                if (confirm == JOptionPane.YES_OPTION) {
+                	try {
+						connection.close();
+						System.exit(0);
+					} catch (Exception exception) {
+						exception.printStackTrace();
+						System.exit(1);
+					}
+                }
+			}
+		});
 
 		JMenuBar menuMainBar = new JMenuBar();
 		JMenu menuFile = new JMenu("File");
@@ -182,7 +198,7 @@ public class App {
 		JMenuItem menuExit = new JMenuItem("Exit");
 		menuExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				frame.dispose();
+				frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
 			}
 		});
 
