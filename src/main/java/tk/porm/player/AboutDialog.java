@@ -53,7 +53,7 @@ public class AboutDialog extends JDialog {
 		getContentPane().add(lblCredits);
 
 		JLabel lblTan = new JLabel("Tan, Adriane Justine", SwingConstants.CENTER);
-		lblTan.setBounds(10, 165, 240, 16);
+		lblTan.setBounds(10, 167, 240, 16);
 		getContentPane().add(lblTan);
 
 		JLabel lblVillanueva = new JLabel("Villanueva, Lanz Joseph", SwingConstants.CENTER);
