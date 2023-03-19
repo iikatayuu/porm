@@ -41,6 +41,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ListSelectionModel;
 import javax.swing.LookAndFeel;
+import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -63,14 +64,19 @@ import tk.porm.player.objects.Settings;
 import tk.porm.player.utils.ImageMap;
 import tk.porm.player.utils.ImagePanel;
 import tk.porm.player.utils.SystemBrowser;
+import tk.porm.player.utils.MP3Format;
 
 public class App {
 	private JFrame frame;
 	private SongPlayer player;
+	private MP3Format audioFormat;
+	private Timer timer;
 	private Songs songs;
 	private ArrayList<Song> songsList;
 	private int selected;
 	private boolean playing;
+	private int currentTime;
+	private int duration;
 
 	private DefaultTableModel tableModel;
 	private ImagePanel albumImgPane;
@@ -82,6 +88,8 @@ public class App {
 	private JButton btnRepeat;
 	private JButton btnShuffle;
 	private JButton btnHeart;
+	private JLabel labelDuration;
+	private JLabel labelCurrentTime;
 	private JTextField tfSearch;
 	private JProgressBar progressBar;
 
@@ -311,7 +319,7 @@ public class App {
 		});
 		btnRepeat.setBorder(BorderFactory.createEmptyBorder());
 		btnRepeat.setContentAreaFilled(false);
-		btnRepeat.setBounds(30, 320, 15, 15);
+		btnRepeat.setBounds(30, 300, 15, 15);
 		detailsPane.add(btnRepeat);
 		
 		btnShuffle = new JButton();
@@ -326,7 +334,7 @@ public class App {
 		});
 		btnShuffle.setBorder(BorderFactory.createEmptyBorder());
 		btnShuffle.setContentAreaFilled(false);
-		btnShuffle.setBounds(102, 320, 15, 15);
+		btnShuffle.setBounds(102, 300, 15, 15);
 		detailsPane.add(btnShuffle);
 
 		btnHeart = new JButton();
@@ -343,8 +351,16 @@ public class App {
 		});
 		btnHeart.setBorder(BorderFactory.createEmptyBorder());
 		btnHeart.setContentAreaFilled(false);
-		btnHeart.setBounds(170, 320, 15, 15);
+		btnHeart.setBounds(170, 300, 15, 15);
 		detailsPane.add(btnHeart);
+		
+		labelDuration = new JLabel("00:00");
+		labelDuration.setBounds(160, 330, 30, 14);
+		detailsPane.add(labelDuration);
+
+		labelCurrentTime = new JLabel("00:00");
+		labelCurrentTime.setBounds(30, 330, 30, 14);
+		detailsPane.add(labelCurrentTime);
 
 		JPanel searchPane = new JPanel();
 		searchPane.setBounds(220, 0, 480, 40);
@@ -552,6 +568,14 @@ public class App {
 			this.liked = liked;
 			btnHeart.setIcon(liked ? imgHeart : imgNoHeart);
 
+			audioFormat = new MP3Format(location);
+			int durationN = audioFormat.getDuration();
+			String durationStr = MP3Format.formatDuration(durationN);
+			currentTime = 0;
+			duration = durationN;
+			labelCurrentTime.setText("00:00");
+			labelDuration.setText(durationStr);
+
 			try {
 				Mp3File mp3file = new Mp3File(location);
 				if (mp3file.hasId3v2Tag()) {
@@ -604,6 +628,25 @@ public class App {
 						if (repeat == Settings.REPEAT.ALL) nextSong();
 					}
 				});
+
+				if (timer != null) {
+					timer.stop();
+					timer = null;
+				}
+
+				timer = new Timer(1000, new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						if (currentTime < duration) {
+							String currentStr = MP3Format.formatDuration(currentTime);
+							labelCurrentTime.setText(currentStr);
+							currentTime++;
+						} else {
+							timer.stop();
+						}
+					}
+				});
+				timer.setRepeats(true);
+				timer.start();
 				player.play();
 			} else {
 				JOptionPane.showMessageDialog(frame, "File was not found on the system", "Failed", JOptionPane.ERROR_MESSAGE);
