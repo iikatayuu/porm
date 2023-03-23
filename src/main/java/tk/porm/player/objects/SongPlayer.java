@@ -14,6 +14,8 @@ public class SongPlayer {
 	private File file;
 	private AdvancedPlayer player;
 	private SongStream stream;
+	private int offset;
+	private int percentage;
 	private int pause;
 	private boolean paused;
 	private Thread threadPlay;
@@ -21,6 +23,7 @@ public class SongPlayer {
 
 	public SongPlayer(String location) {
 		file = new File(location);
+		paused = true;
 		pause = 0;
 		threadPlay = null;
 	}
@@ -38,7 +41,7 @@ public class SongPlayer {
 						public void progress(int read, int length) {
 							int gap = pause == 0 ? 0 : length - pause;
 							if (listener != null) {
-								int totalRead = read + gap;
+								int totalRead = (percentage > 0 ? offset : 0) + read + gap;
 								listener.progress(totalRead, length);
 								if (totalRead == length) isFinished = true;
 							}
@@ -73,6 +76,11 @@ public class SongPlayer {
 					});
 
 					if (pause > 0) stream.skip(length - pause);
+					else if (percentage >= 0) {
+						offset = (int) ((float) length * ((float) percentage / 100));
+						stream.skip(offset);
+					}
+
 					player.play();
 				} catch (Exception exception) {
 					exception.printStackTrace();
@@ -86,19 +94,29 @@ public class SongPlayer {
 	}
 
 	public void play() {
-		paused = false;
-		threadPlay = createThread();
-		threadPlay.start();
+		play(0);
+	}
+
+	public void play(int percentage) {
+		if (paused) {
+			this.percentage = percentage;
+			paused = false;
+			pause = percentage > 0 ? 0 : pause;
+			threadPlay = createThread();
+			threadPlay.start();
+		}
 	}
 
 	public void pause() {
-		paused = true;
-		try {
-			pause = stream.available();
-			player.stop();
-			threadPlay = null;
-		} catch (Exception exception) {
-			exception.printStackTrace();
+		if (!paused) {
+			paused = true;
+			try {
+				pause = stream.available();
+				player.stop();
+				threadPlay = null;
+			} catch (Exception exception) {
+				exception.printStackTrace();
+			}
 		}
 	}
 

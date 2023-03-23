@@ -36,7 +36,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.JProgressBar;
+import javax.swing.JSlider;
 import javax.swing.JFileChooser;
 import javax.swing.JPopupMenu;
 import javax.swing.UIManager;
@@ -51,6 +51,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
@@ -74,7 +76,6 @@ import tk.porm.player.utils.SystemBrowser;
 import tk.porm.player.utils.MP3Format;
 
 public class App {
-	private JFrame frame;
 	private SongPlayer player;
 	private MP3Format audioFormat;
 	private Timer timer;
@@ -84,9 +85,11 @@ public class App {
 	private boolean playing;
 	private int currentTime;
 	private int duration;
+	private boolean seeking;
 
-	private DefaultTableModel tableModel;
+	private JFrame frame;
 	private ImagePanel albumImgPane;
+	private DefaultTableModel tableModel;
 	private JTable songsListTable;
 	private JLabel labelTitle;
 	private JLabel labelArtist;
@@ -99,7 +102,7 @@ public class App {
 	private JLabel labelDuration;
 	private JLabel labelCurrentTime;
 	private JTextField tfSearch;
-	private JProgressBar progressBar;
+	private JSlider progressBar;
 
 	private Settings settings;
 	private Settings.THEME theme;
@@ -149,6 +152,7 @@ public class App {
 		this.mapImage = new ImageMap(loader);
 		this.selected = -1;
 		this.playing = false;
+		this.seeking = false;
 
 		InputStream iconStream = loader.getResourceAsStream("icon.png");
 		InputStream albumStream = loader.getResourceAsStream("album.jpg");
@@ -301,8 +305,27 @@ public class App {
 		labelArtist.setBounds(10, 160, 200, 23);
 		detailsPane.add(labelArtist);
 
-		progressBar = new JProgressBar();
-		progressBar.setBounds(30, 350, 160, 4);
+		progressBar = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
+		progressBar.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (seeking) {
+					int value = progressBar.getValue();
+					currentTime = (int) ((float) duration * (float) value / 100);
+					player.play(value);
+					seeking = false;
+				}
+			}
+		});
+		progressBar.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (playing) {
+					player.pause();
+					seeking = true;
+				}
+			}
+		});
+		progressBar.setBounds(30, 350, 160, 8);
 		detailsPane.add(progressBar);
 
 		btnPrev = new JButton();
@@ -720,8 +743,8 @@ public class App {
 				player.setPlayerListener(new PlayerListener() {
 					@Override
 					public void progress(int read, int length) {
-						progressBar.setValue(read);
-						progressBar.setMaximum(length);
+						int percentage = (int) (((float) read / (float) length) * 100);
+						progressBar.setValue(percentage);
 					}
 
 					@Override
