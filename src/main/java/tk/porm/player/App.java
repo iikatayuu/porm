@@ -66,6 +66,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 
 import tk.porm.player.database.DatabaseConnection;
 import tk.porm.player.interfaces.PlayerListener;
+import tk.porm.player.objects.Playlists;
 import tk.porm.player.objects.Song;
 import tk.porm.player.objects.Songs;
 import tk.porm.player.objects.SongPlayer;
@@ -76,18 +77,24 @@ import tk.porm.player.utils.SystemBrowser;
 import tk.porm.player.utils.MP3Format;
 
 public class App {
+	private Connection connection;
 	private SongPlayer player;
 	private MP3Format audioFormat;
 	private Timer timer;
 	private Songs songs;
+	private Playlists playlists;
 	private ArrayList<Song> songsList;
+	private ArrayList<Integer> playlistsList;
 	private int selected;
 	private boolean playing;
 	private int currentTime;
 	private int duration;
 	private boolean seeking;
+	private int playlist;
 
 	private JFrame frame;
+	private JMenu menuPlaylists;
+	private JMenuItem menuNewPlaylist;
 	private ImagePanel albumImgPane;
 	private DefaultTableModel tableModel;
 	private JTable songsListTable;
@@ -143,12 +150,15 @@ public class App {
 
 	public App(final Connection connection) {
 		ClassLoader loader = getClass().getClassLoader();
-		this.songs = new Songs(connection);
+		this.connection = connection;
 		this.settings = new Settings(connection);
 		this.theme = settings.getTheme();
 		this.repeat = settings.getRepeat();
 		this.shuffle = settings.getShuffle();
 		this.compact = settings.getCompact();
+		this.playlist = settings.getPlaylist();
+		this.songs = new Songs(connection, playlist);
+		this.playlists = new Playlists(connection);
 		this.mapImage = new ImageMap(loader);
 		this.selected = -1;
 		this.playing = false;
@@ -201,6 +211,16 @@ public class App {
 		menuFile.setMnemonic(KeyEvent.VK_F);
 		menuView.setMnemonic(KeyEvent.VK_V);
 		menuAbout.setMnemonic(KeyEvent.VK_A);
+
+		menuPlaylists = new JMenu("Playlists...");
+		menuNewPlaylist = new JMenuItem("New playlist");
+		menuNewPlaylist.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int playlist = playlists.newPlaylist();
+				selectPlaylist(playlist);
+			}
+		});
+		loadPlaylists();
 
 		JMenuItem menuAddFile = new JMenuItem("Add files...");
 		menuAddFile.addActionListener(new ActionListener() {
@@ -262,6 +282,8 @@ public class App {
 			}
 		});
 
+		menuPlaylists.add(menuNewPlaylist);
+		menuFile.add(menuPlaylists);
 		menuFile.add(menuAddFile);
 		menuFile.add(menuExit);
 		menuView.add(menuCompact);
@@ -645,9 +667,41 @@ public class App {
 		}
 	}
 
+	public void loadPlaylists() {
+		playlistsList = playlists.getPlaylists();
+		displayPlaylists();
+	}
+
 	public void loadSongs(String search) {
 		songsList = songs.getSongs(search);
 		displaySongs();
+	}
+
+	public void selectPlaylist(int playlist) {
+		this.playlist = playlist;
+		songs = new Songs(connection, playlist);
+		settings.setPlaylist(playlist);
+		tfSearch.setText("");
+		loadSongs("");
+		displayPlaylists();
+	}
+
+	public void displayPlaylists() {
+		menuPlaylists.removeAll();
+		for (int i = 0; i < playlistsList.size(); i++) {
+			final int playlist = playlistsList.get(i);
+			JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem(String.valueOf(playlist));
+			menuItem.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					selectPlaylist(playlist);
+				}
+			});
+			if (playlist == this.playlist) menuItem.setSelected(true);
+			menuPlaylists.add(menuItem);
+		}
+
+		menuPlaylists.add(new JSeparator());
+		menuPlaylists.add(menuNewPlaylist);
 	}
 
 	public void displaySongs() {

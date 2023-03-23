@@ -11,10 +11,12 @@ import tk.porm.player.interfaces.SongsInterface;
 public class Songs implements SongsInterface {
 	private Connection connection;
 	private ArrayList<Song> songs;
+	private int playlist;
 
-	public Songs(Connection connection) {
+	public Songs(Connection connection, int playlist) {
 		this.connection = connection;
 		this.songs = new ArrayList<Song>();
+		this.playlist = playlist;
 	}
 
 	@Override
@@ -23,9 +25,10 @@ public class Songs implements SongsInterface {
 		search = "%" + search + "%";
 
 		try {
-			PreparedStatement statement = connection.prepareStatement("SELECT * FROM songs WHERE title LIKE ? OR artist LIKE ? ORDER BY id ASC");
-			statement.setString(1, search);
+			PreparedStatement statement = connection.prepareStatement("SELECT * FROM songs WHERE playlist=? AND (title LIKE ? OR artist LIKE ?) ORDER BY id ASC");
+			statement.setInt(1, playlist);
 			statement.setString(2, search);
+			statement.setString(3, search);
 
 			ResultSet result = statement.executeQuery();
 			while (result.next()) {
@@ -34,7 +37,8 @@ public class Songs implements SongsInterface {
 				String title = result.getString("title");
 				String artist = result.getString("artist");
 				boolean liked = result.getBoolean("liked");
-				Song song = new Song(id, location, title, artist, liked);
+				int playlistId = result.getInt("playlist");
+				Song song = new Song(id, location, title, artist, liked, playlistId);
 				songs.add(song);
 			}
 		} catch (Exception exception) {
@@ -47,10 +51,11 @@ public class Songs implements SongsInterface {
 	@Override
 	public void addSong(String location, String title, String artist) {
 		try {
-			PreparedStatement statement = connection.prepareStatement("INSERT INTO songs (location, title, artist) VALUES (?, ?, ?)");
+			PreparedStatement statement = connection.prepareStatement("INSERT INTO songs (location, title, artist, playlist) VALUES (?, ?, ?, ?)");
 			statement.setString(1, location);
 			statement.setString(2, title);
 			statement.setString(3, artist);
+			statement.setInt(4, playlist);
 			statement.execute();
 		} catch (Exception exception) {
 			exception.printStackTrace();

@@ -13,6 +13,7 @@ public class Settings implements SettingsInterface {
 	private REPEAT repeat;
 	private boolean shuffle;
 	private COMPACT compact;
+	private int playlist;
 
 	public Settings(Connection connection) {
 		this.connection = connection;
@@ -20,6 +21,7 @@ public class Settings implements SettingsInterface {
 		this.repeat = REPEAT.NONE;
 		this.shuffle = false;
 		this.compact = COMPACT.ENABLED;
+		this.playlist = 1;
 
 		try {
 			Statement statement = connection.createStatement();
@@ -45,6 +47,10 @@ public class Settings implements SettingsInterface {
 
 				if (name.equals("compact")) {
 					compact = value.equals("true") ? COMPACT.ENABLED : COMPACT.DISABLED;
+				}
+
+				if (name.equals("playlist")) {
+					playlist = Integer.parseInt(value);
 				}
 			}
 		} catch (Exception exception) {
@@ -121,6 +127,23 @@ public class Settings implements SettingsInterface {
 			statement.setString(1, compact == COMPACT.ENABLED ? "true" : "false");
 			statement.execute();
 			this.compact = compact;
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+	}
+
+	@Override
+	public int getPlaylist() {
+		return playlist;
+	}
+
+	@Override
+	public void setPlaylist(int playlist) {
+		try {
+			PreparedStatement statement = connection.prepareStatement("UPDATE settings SET value=? WHERE name='playlist'");
+			statement.setString(1, String.valueOf(playlist));
+			statement.execute();
+			this.playlist = playlist;
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		}

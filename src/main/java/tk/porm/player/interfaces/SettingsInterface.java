@@ -16,4 +16,7 @@ public interface SettingsInterface {
 
 	public COMPACT getCompact();
 	public void setCompact(COMPACT compact);
+
+	public int getPlaylist();
+	public void setPlaylist(int playlist);
 }
